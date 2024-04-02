@@ -5,7 +5,9 @@
   "author": "Alec Larson",
   "license": "See LICENSE",
   "repository": "alloc/codegentool",
-  "bin": "dist/cli.js",
+  "bin": {
+    "codegentool": "dist/cli.js"
+  },
   "main": "dist/api.js",
   "module": "dist/api.mjs",
   "types": "dist/api.d.ts",
