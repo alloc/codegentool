@@ -1,33 +1,44 @@
-import escalade from 'escalade'
+import escalade from 'escalade/sync'
 import fs from 'fs'
 
 export interface Config {
   generators: string[]
+  tsconfig?: string
+  format: 'esm' | 'cjs'
 }
 
 export function readConfig(cwd: string) {
-  // Keep reading next nearest package.json until "codegentool" field is found or we run out of packages to read.
   let config: Config | undefined
   let configPath: string | undefined
 
   const watchPaths: string[] = []
   escalade(cwd, (dir, names) => {
     watchPaths.push(dir + '/package.json')
+
     if (names.includes('package.json')) {
-      const pkg = JSON.parse(fs.readFileSync(dir + '/package.json', 'utf8'))
-      if (pkg.codegentool) {
+      let pkg: any
+      try {
+        pkg = JSON.parse(fs.readFileSync(dir + '/package.json', 'utf8'))
+      } catch {}
+
+      // Stop when we find the "codegentool" field.
+      if (pkg?.codegentool && typeof pkg.codegentool === 'object') {
         config = pkg.codegentool
         configPath = dir + '/package.json'
         return dir
       }
     }
+
+    // Stop at the repository root.
     if (names.includes('.git')) {
       return dir
     }
   })
 
-  config ||= {
-    generators: ['generators/**/*.[mc]?[jt]s'],
+  config = {
+    generators: ['generators/**/*.{ts,mts,js,mjs}', '!**/node_modules/**'],
+    format: 'cjs',
+    ...config,
   }
 
   return {

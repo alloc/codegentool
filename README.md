@@ -60,7 +60,11 @@ The runtime API is passed to each generator function. As of now, it's only for f
 
 ### scan()
 
-Alias to [`fast-glob`](https://github.com/mrmlnc/fast-glob?tab=readme-ov-file#api) API with file-watching support.
+Alias to [`fast-glob`](https://github.com/mrmlnc/fast-glob?tab=readme-ov-file#api) package with
+file-watching support.
+
+Note: In watch mode, changes to files matching the glob will trigger a rerun even though they
+shouldn't.
 
 ### read()
 
@@ -68,4 +72,8 @@ Alias to `fs.readFileSync` with file-watching support.
 
 ### write()
 
-Alias to `fs.writeFileSync`
+Alias to `fs.writeFileSync` but it won't write if nothing changed.
+
+### dedent()
+
+Alias to [`dedent`](https://github.com/dmnd/dedent?tab=readme-ov-file#usage) package.

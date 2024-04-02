@@ -1,9 +1,10 @@
-import glob from 'fast-glob'
+import type { Options as GlobOptions } from 'fast-glob'
+import dedent from 'dedent'
 
 type Promisable<T> = T | Promise<T>
 
 export interface API {
-  scan(source: string | string[], options?: glob.Options): string[]
+  scan(source: string | string[], options?: GlobOptions): string[]
 
   read(
     path: string,
@@ -35,6 +36,8 @@ export interface API {
   ): string | Buffer
 
   write(path: string, data: string | Buffer): void
+
+  dedent: typeof dedent
 }
 
 export function defineGenerator(fn: (api: API) => Promisable<void>) {
