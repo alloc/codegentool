@@ -1,0 +1,38 @@
+{
+  "name": "codegentool",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Run code-generating scripts with one command and as files change",
+  "author": "Alec Larson",
+  "license": "See LICENSE",
+  "repository": "alloc/codegentool",
+  "bin": "dist/cli.js",
+  "module": "dist/api.js",
+  "types": "dist/api.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "tsup-node --sourcemap --watch",
+    "build": "tsup-node",
+    "lint": "tsc -p . --noEmit",
+    "prepare": "yarn build"
+  },
+  "devDependencies": {
+    "@alloc/prettier-config": "^1.0.0",
+    "@types/node": "^20.12.2",
+    "prettier": "^2.8.0",
+    "tsup": "^6.5.0",
+    "typescript": "^4.9.3"
+  },
+  "prettier": "@alloc/prettier-config",
+  "dependencies": {
+    "bundle-require": "^4.0.2",
+    "cac": "^6.7.14",
+    "chokidar": "^3.6.0",
+    "dequal": "^2.0.3",
+    "esbuild": "^0.20.2",
+    "escalade": "^3.1.2",
+    "fast-glob": "^3.3.2"
+  }
+}
