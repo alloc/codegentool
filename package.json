@@ -1,6 +1,6 @@
 {
   "name": "codegentool",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Run code-generating scripts with one command and as files change",
   "author": "Alec Larson",
   "license": "See LICENSE",
