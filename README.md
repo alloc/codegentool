@@ -37,7 +37,7 @@ export default defineGenerator(({ scan }) => {
 ### Usage
 
 ```ts
-pnpm install -D codegentool
+pnpm install -D codegentool@npm:@alloc/codegentool
 ```
 
 Run your project's configured generators:
