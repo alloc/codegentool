@@ -34,6 +34,15 @@ async function start(cwd: string, options: Options) {
   const watcher = watch([...config.generators, ...watchPaths])
   const generators = new Map<string, Promise<() => void>>()
 
+  const regenerate = debounce((name: string) => {
+    const promise = generators.get(name) ?? Promise.resolve()
+    promise
+      .then(close => close?.())
+      .then(() => {
+        generators.set(name, generate(name, config))
+      })
+  }, 100)
+
   let initialized = false
   watcher.on('all', (event, name) => {
     if (name.endsWith('package.json')) {
@@ -49,12 +58,7 @@ async function start(cwd: string, options: Options) {
         start(cwd, options)
       }
     } else if (event == 'add' || event == 'change') {
-      const promise = generators.get(name) ?? Promise.resolve()
-      promise
-        .then(close => close?.())
-        .then(() => {
-          generators.set(name, generate(name, config))
-        })
+      regenerate(name)
     }
   })
 
