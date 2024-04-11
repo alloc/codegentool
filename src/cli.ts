@@ -78,11 +78,13 @@ async function start(cwd: string, options: Options) {
 }
 
 async function generate(generatorPath: string, config: Config) {
-  const watcher = watch([generatorPath], {
+  const watcher = watch([], {
     ignoreInitial: true,
   })
 
-  let close = Promise.resolve(() => watcher.close())
+  let close = Promise.resolve(() => {
+    watcher.close()
+  })
 
   // Regenerate when a file changes.
   watcher.on(
@@ -112,7 +114,7 @@ async function generate(generatorPath: string, config: Config) {
       throw new Error(`Generator must default export a function`)
     }
 
-    watcher.add(dependencies)
+    watcher.add(dependencies.filter(file => file !== generatorPath))
 
     let filesGenerated = 0
 
