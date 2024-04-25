@@ -210,6 +210,45 @@ async function generate(generatorPath: string, config: Config) {
           }
         }
       },
+      writeEnv: (file, data) => {
+        if (fs.existsSync(file)) {
+          let changed = false
+
+          // Parse the existing env file and replace the keys defined in data.
+          const existing = fs.readFileSync(file, 'utf8')
+          const existingLines = existing.split('\n')
+          const newLines = existingLines.map(line => {
+            const [key, value] = line.split('=')
+            if (data[key] !== value) {
+              changed = true
+              return `${key}=${data[key].replace(/[\n]/g, '\\n')}`
+            }
+            return line
+          })
+
+          if (changed) {
+            fs.writeFileSync(
+              file,
+              newLines.join('\n') + (existing.endsWith('\n') ? '\n' : '')
+            )
+            console.log(
+              `✔️ Updated env file %s`,
+              kleur.green(path.relative(process.cwd(), file))
+            )
+          }
+        } else {
+          fs.writeFileSync(
+            file,
+            Object.entries(data)
+              .map(([k, v]) => `${k}=${v.replace(/[\n]/g, '\\n')}`)
+              .join('\n') + '\n'
+          )
+          console.log(
+            `✔️ Created env file %s`,
+            kleur.green(path.relative(process.cwd(), file))
+          )
+        }
+      },
       dedent,
       loadModule: async (id, basedir) => {
         const isBareSpec = !id.startsWith('./') && !id.startsWith('../')

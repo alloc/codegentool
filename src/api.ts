@@ -37,6 +37,8 @@ export interface API {
 
   write(path: string, data: string | Buffer): void
 
+  writeEnv(path: string, data: Record<string, any>): void
+
   dedent: typeof dedent
 
   /**
