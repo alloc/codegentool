@@ -136,6 +136,8 @@ async function generate(generatorPath: string, config: Config) {
       kleur.cyan(path.relative(process.cwd(), generatorPath))
     )
 
+    let outputPath!: string
+
     // Note: You can use BUNDLE_REQUIRE_PRESERVE=1 to prevent deletion of the bundle on process exit
     // (for debugging purposes).
     const {
@@ -144,7 +146,9 @@ async function generate(generatorPath: string, config: Config) {
     } = await bundleRequire({
       ...requireOptions,
       filepath: generatorPath,
-      getOutputFile,
+      getOutputFile: (file, format) => {
+        return (outputPath = getOutputFile(file, format))
+      },
     })
 
     if (typeof generator !== 'function') {
@@ -155,6 +159,7 @@ async function generate(generatorPath: string, config: Config) {
 
     let filesGenerated = 0
 
+    const seenErrors = new Set<string>()
     const watchPaths = new Set<string>()
     const api: API = {
       scan: (source, options) => {
@@ -206,6 +211,47 @@ async function generate(generatorPath: string, config: Config) {
         }
       },
       dedent,
+      loadModule: async (id, basedir) => {
+        const isBareSpec = !id.startsWith('./') && !id.startsWith('../')
+        try {
+          if (!isBareSpec) {
+            id = path.resolve(basedir ?? path.dirname(generatorPath), id)
+          }
+          id = resolveModule(id, outputPath)
+        } catch (error: any) {
+          console.error(error.message)
+          return null
+        }
+
+        try {
+          if (isBareSpec) {
+            return await import(id)
+          } else {
+            // Note: You can use BUNDLE_REQUIRE_PRESERVE=1 to prevent deletion of the bundle on
+            // process exit (for debugging purposes).
+            const { mod, dependencies } = await bundleRequire({
+              ...requireOptions,
+              filepath: id,
+              getOutputFile,
+            })
+            watcher.add(dependencies)
+            return mod
+          }
+        } catch (error: any) {
+          const message = (error && (error.stack || error.message)) || error
+          if (seenErrors.has(message)) {
+            return null
+          }
+          seenErrors.add(message)
+          console.error(`Error loading module "${id}"`)
+          if (error.errors) {
+            console.error(error.message)
+          } else {
+            console.error(error)
+          }
+          return null
+        }
+      },
     }
 
     await generator(api)
