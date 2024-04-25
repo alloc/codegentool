@@ -74,6 +74,14 @@ Alias to `fs.readFileSync` with file-watching support.
 
 Alias to `fs.writeFileSync` but it won't write if nothing changed.
 
+### writeEnv()
+
+Create or update a `.env` file with the given data. Pass `null` to unset a key.
+
 ### dedent()
 
 Alias to [`dedent`](https://github.com/dmnd/dedent?tab=readme-ov-file#usage) package.
+
+### loadModule()
+
+Similar to `import()` but returns null instead of rejecting when a module is not found. Also has an optional `basedir` argument for resolution. Finally, the default `basedir` is the directory of the bundled generator (which defaults to somewhere in `node_modules/.cache/codegentool`). Relative imports are resolved as if the import was executed from the generator's source path.
