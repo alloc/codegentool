@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import cac from 'cac'
-import { bundleRequire } from 'bundle-require'
+import { bundleRequire, Options as RequireOptions } from 'bundle-require'
 import { getOutputFile } from './util'
 import { watch } from 'chokidar'
 import { Config, readConfig } from './config'
@@ -8,8 +8,10 @@ import { dequal } from 'dequal'
 import type { API } from './api'
 import fs from 'fs'
 import path from 'path'
+import resolve from 'resolve'
 import glob from 'fast-glob'
 import dedent from 'dedent'
+import builtinModules from 'builtin-modules'
 import kleur from 'kleur'
 
 const program = cac('codegentool')
@@ -95,19 +97,54 @@ async function generate(generatorPath: string, config: Config) {
     }, 500)
   )
 
+  // Support module resolution for TypeScript and JavaScript files.
+  const resolveModule = (id: string, importer: string) =>
+    resolve.sync(id, {
+      extensions: ['.ts', '.js', '.mts', '.cts', '.mjs', '.cjs'],
+      basedir: path.dirname(importer),
+    })
+
+  const resolvePlugin = {
+    name: 'resolve-module',
+    setup(build: any) {
+      build.onResolve({ filter: /.*/ }, (args: any) => {
+        if (builtinModules.includes(args.path)) {
+          return
+        }
+        try {
+          return {
+            path: resolveModule(args.path, args.importer),
+          }
+        } catch {}
+      })
+    },
+  }
+
+  const requireOptions: Partial<RequireOptions> = {
+    tsconfig: config.tsconfig,
+    format: config.format,
+    esbuildOptions: {
+      sourcemap: 'inline',
+      logLevel: 'silent',
+      plugins: [resolvePlugin],
+    },
+  }
+
   try {
     console.log(
       `▶ Running %s`,
       kleur.cyan(path.relative(process.cwd(), generatorPath))
     )
+
+    // Note: You can use BUNDLE_REQUIRE_PRESERVE=1 to prevent deletion of the bundle on process exit
+    // (for debugging purposes).
     const {
       mod: { default: generator },
       dependencies,
     } = await bundleRequire({
+      ...requireOptions,
       filepath: generatorPath,
       getOutputFile,
-      tsconfig: config.tsconfig,
-      format: config.format,
     })
 
     if (typeof generator !== 'function') {
