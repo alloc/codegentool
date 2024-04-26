@@ -211,25 +211,48 @@ async function generate(generatorPath: string, config: Config) {
         }
       },
       writeEnv: (file, data) => {
+        const encodeValue = (value: string) =>
+          JSON.stringify(String(value)).slice(1, -1)
+
         if (fs.existsSync(file)) {
           let changed = false
 
           // Parse the existing env file and replace the keys defined in data.
           const existing = fs.readFileSync(file, 'utf8')
-          const existingLines = existing.split('\n')
+          const existingLines = existing.trimEnd().split('\n')
+
+          const foundKeys = new Set<string>()
           const newLines = existingLines.map(line => {
-            const [key, value] = line.split('=')
-            if (data[key] !== value) {
+            if (line[0] === '#' || line.trim() === '') {
+              return line
+            }
+
+            let [key, value] = line.split('=')
+            key = key.trim()
+            value = value.trim()
+            foundKeys.add(key)
+
+            if (data[key] !== undefined && data[key] !== value) {
               changed = true
-              return `${key}=${data[key].replace(/[\n]/g, '\\n')}`
+              if (data[key] === null) {
+                return null
+              }
+              return `${key}=${encodeValue(data[key])}`
             }
             return line
           })
+          for (const key of Object.keys(data)) {
+            if (!foundKeys.has(key) && data[key] != null) {
+              changed = true
+              newLines.push(`${key}=${encodeValue(data[key])}`)
+            }
+          }
 
           if (changed) {
             fs.writeFileSync(
               file,
-              newLines.join('\n') + (existing.endsWith('\n') ? '\n' : '')
+              newLines.filter(line => line !== null).join('\n') +
+                (existing.endsWith('\n') ? '\n' : '')
             )
             console.log(
               `✔️ Updated env file %s`,
@@ -240,7 +263,8 @@ async function generate(generatorPath: string, config: Config) {
           fs.writeFileSync(
             file,
             Object.entries(data)
-              .map(([k, v]) => `${k}=${v.replace(/[\n]/g, '\\n')}`)
+              .filter(([, v]) => v != null)
+              .map(([k, v]) => `${k}=${encodeValue(v)}`)
               .join('\n') + '\n'
           )
           console.log(
