@@ -295,7 +295,7 @@ async function generate(generatorPath: string, config: Config) {
       dedent,
       parseModule: (file, options) => {
         file = path.resolve(file)
-        return parse(read(file), file, options)
+        return parse(read(file, 'utf8'), file, options)
       },
       parseModuleText: (code, options, file) => {
         return parse(code, file ?? '<unknown>', options)
