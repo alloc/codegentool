@@ -12,7 +12,8 @@
   "module": "dist/api.mjs",
   "types": "dist/api.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "estree.d.ts"
   ],
   "scripts": {
     "dev": "tsup-node --sourcemap --watch",
