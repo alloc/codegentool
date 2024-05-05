@@ -379,7 +379,12 @@ function parse(code: string, filePath: string, options?: ParseModuleOptions) {
   try {
     let transforms = options?.transforms || []
     if (isTS && !transforms.includes('typescript')) {
-      transforms.push('typescript')
+      transforms = [...transforms, 'typescript']
+    }
+    let transformOptions = options?.transformOptions || {}
+    if (isJSX && !transforms.includes('jsx')) {
+      transformOptions = { ...transformOptions, jsxRuntime: 'preserve' }
+      transforms = [...transforms, 'jsx']
     }
     if (transforms.length) {
       const transformResult = transform(code, {
