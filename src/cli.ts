@@ -371,16 +371,25 @@ function debounce<T extends (...args: any[]) => any>(fn: T, wait: number): T {
 }
 
 function parse(code: string, filePath: string, options?: ParseModuleOptions) {
+  const type = filePath.match(/\.[^.]+$/)?.[0]
+  const isJSX = type === '.jsx' || type === '.tsx'
+  const isTS =
+    type === '.ts' || type === '.tsx' || type === '.mts' || type === '.cts'
+
   try {
-    if (options?.transforms) {
+    let transforms = options?.transforms || []
+    if (isTS && !transforms.includes('typescript')) {
+      transforms.push('typescript')
+    }
+    if (transforms.length) {
       const transformResult = transform(code, {
-        ...options.transformOptions,
-        transforms: options.transforms,
+        ...options?.transformOptions,
+        transforms,
         filePath,
       })
       code = transformResult.code
     }
-    return parseModule(code, { next: true, ...options })
+    return parseModule(code, { next: true, jsx: isJSX, ...options })
   } catch (error: any) {
     error.message = `Error parsing ${filePath}: ${error.message}`
     throw error
