@@ -1,7 +1,15 @@
 import type { Options as GlobOptions } from 'fast-glob'
+import type { Program } from '../estree'
 import dedent from 'dedent'
+import { Options as MeriyahOptions } from 'meriyah'
+import { Transform, Options as SucraseOptions } from 'sucrase'
 
 type Promisable<T> = T | Promise<T>
+
+export interface ParseModuleOptions extends Omit<MeriyahOptions, 'next'> {
+  transforms?: Transform[]
+  transformOptions?: Omit<SucraseOptions, 'transforms'>
+}
 
 export interface API {
   scan(source: string | string[], options?: GlobOptions): string[]
@@ -40,6 +48,14 @@ export interface API {
   writeEnv(path: string, data: Record<string, any>): void
 
   dedent: typeof dedent
+
+  parseModule(path: string, options?: ParseModuleOptions): Program
+
+  parseModuleText(
+    text: string,
+    options?: ParseModuleOptions,
+    file?: string
+  ): Program
 
   /**
    * Similar to `import(…)` but its result can be casted with `loadModule<Exports>(…)` and it

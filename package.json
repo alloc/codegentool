@@ -40,6 +40,8 @@
     "escalade": "^3.1.2",
     "fast-glob": "^3.3.2",
     "kleur": "^4.1.5",
-    "resolve": "^1.22.8"
+    "meriyah": "^4.4.2",
+    "resolve": "^1.22.8",
+    "sucrase": "^3.35.0"
   }
 }

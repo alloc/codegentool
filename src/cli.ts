@@ -1,18 +1,20 @@
 #!/usr/bin/env node
+import builtinModules from 'builtin-modules'
+import { Options as RequireOptions, bundleRequire } from 'bundle-require'
 import cac from 'cac'
-import { bundleRequire, Options as RequireOptions } from 'bundle-require'
-import { getOutputFile } from './util'
 import { watch } from 'chokidar'
-import { Config, readConfig } from './config'
+import dedent from 'dedent'
 import { dequal } from 'dequal'
-import type { API } from './api'
+import glob from 'fast-glob'
 import fs from 'fs'
+import kleur from 'kleur'
+import { parseModule } from 'meriyah'
 import path from 'path'
 import resolve from 'resolve'
-import glob from 'fast-glob'
-import dedent from 'dedent'
-import builtinModules from 'builtin-modules'
-import kleur from 'kleur'
+import { transform } from 'sucrase'
+import type { API, ParseModuleOptions } from './api'
+import { Config, readConfig } from './config'
+import { getOutputFile } from './util'
 
 const program = cac('codegentool')
 
@@ -165,6 +167,22 @@ async function generate(generatorPath: string, config: Config) {
 
     const seenErrors = new Set<string>()
     const watchPaths = new Set<string>()
+
+    const read = (
+      file: string,
+      options?:
+        | {
+            encoding?: BufferEncoding | null | undefined
+            flag?: string | undefined
+          }
+        | BufferEncoding
+        | null
+    ): any => {
+      file = path.resolve(file)
+      watchPaths.add(file)
+      return fs.readFileSync(file, options)
+    }
+
     const api: API = {
       scan: (source, options) => {
         const cwd = path.resolve(options?.cwd || '.')
@@ -175,10 +193,7 @@ async function generate(generatorPath: string, config: Config) {
         }
         return glob.sync(source, options)
       },
-      read: (file, encoding): any => {
-        watchPaths.add(file)
-        return fs.readFileSync(file, encoding)
-      },
+      read,
       write: (file, data) => {
         if (typeof data === 'string') {
           let current: string | undefined
@@ -278,6 +293,13 @@ async function generate(generatorPath: string, config: Config) {
         }
       },
       dedent,
+      parseModule: (file, options) => {
+        file = path.resolve(file)
+        return parse(read(file), file, options)
+      },
+      parseModuleText: (code, options, file) => {
+        return parse(code, file ?? '<unknown>', options)
+      },
       loadModule: async (id, basedir) => {
         const isBareSpec = !id.startsWith('./') && !id.startsWith('../')
         try {
@@ -346,4 +368,21 @@ function debounce<T extends (...args: any[]) => any>(fn: T, wait: number): T {
     clearTimeout(timeout)
     timeout = setTimeout(() => fn.apply(this, args), wait)
   } as T
+}
+
+function parse(code: string, filePath: string, options?: ParseModuleOptions) {
+  try {
+    if (options?.transforms) {
+      const transformResult = transform(code, {
+        ...options.transformOptions,
+        transforms: options.transforms,
+        filePath,
+      })
+      code = transformResult.code
+    }
+    return parseModule(code, { next: true, ...options })
+  } catch (error: any) {
+    error.message = `Error parsing ${filePath}: ${error.message}`
+    throw error
+  }
 }
