@@ -82,6 +82,20 @@ Create or update a `.env` file with the given data. Pass `null` to unset a key.
 
 Alias to [`dedent`](https://github.com/dmnd/dedent?tab=readme-ov-file#usage) package.
 
+### serialize()
+
+Alias to [`serialize-javascript`](https://github.com/yahoo/serialize-javascript) package.
+
+### parseModule()
+
+Given a module path, parse the module and return the AST. Both JSX and TypeScript are supported with no extra configuration.
+
+We use [`meriyah`](https://github.com/meriyah/meriyah) for parsing.
+
+### parseModuleText()
+
+Given a string of code, parse it and return the AST. Both JSX and TypeScript are supported with no extra configuration.
+
 ### loadModule()
 
 Similar to `import()` but returns null instead of rejecting when a module is not found. Also has an optional `basedir` argument for resolution. Finally, the default `basedir` is the directory of the bundled generator (which defaults to somewhere in `node_modules/.cache/codegentool`). Relative imports are resolved as if the import was executed from the generator's source path.
