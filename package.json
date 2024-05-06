@@ -1,6 +1,6 @@
 {
   "name": "@alloc/codegentool",
-  "version": "1.2.4",
+  "version": "1.3.0",
   "description": "Run code-generating scripts with one command and as files change",
   "author": "Alec Larson",
   "license": "See LICENSE",
