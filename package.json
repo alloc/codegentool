@@ -25,6 +25,7 @@
     "@alloc/prettier-config": "^1.0.0",
     "@types/node": "^20.12.2",
     "@types/resolve": "^1.20.6",
+    "@types/serialize-javascript": "^5.0.4",
     "prettier": "^2.8.0",
     "tsup": "^6.5.0",
     "typescript": "^4.9.3"
@@ -43,6 +44,7 @@
     "kleur": "^4.1.5",
     "meriyah": "^4.4.2",
     "resolve": "^1.22.8",
+    "serialize-javascript": "^6.0.2",
     "sucrase": "^3.35.0"
   }
 }

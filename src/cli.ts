@@ -15,6 +15,7 @@ import { transform } from 'sucrase'
 import type { API, ParseModuleOptions } from './api'
 import { Config, readConfig } from './config'
 import { getOutputFile } from './util'
+import serialize from 'serialize-javascript'
 
 const program = cac('codegentool')
 
@@ -293,6 +294,7 @@ async function generate(generatorPath: string, config: Config) {
         }
       },
       dedent,
+      serialize,
       parseModule: (file, options) => {
         file = path.resolve(file)
         return parse(read(file, 'utf8'), file, options)
