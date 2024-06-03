@@ -36,8 +36,10 @@ async function start(cwd: string, options: Options) {
     process.chdir(path.dirname(configPath))
   }
 
-  const watcher = watch([...config.generators, ...watchPaths])
   const generators = new Map<string, Promise<() => void>>()
+  const watcher = watch([...config.generators, ...watchPaths], {
+    ignoreInitial: options.watch,
+  })
 
   const regenerateQueue = new Set<string>()
   const regenerate = debounce(() => {
@@ -74,14 +76,19 @@ async function start(cwd: string, options: Options) {
   await new Promise<void>(resolve => {
     watcher.once('ready', () => {
       initialized = true
-      resolve()
+      if (options.watch) {
+        resolve()
+      } else {
+        watcher.close()
+        // Wait for the generators map to be populated.
+        setTimeout(resolve, 100)
+      }
     })
   })
 
   if (options.watch) {
     console.log(`⌘ Watching for changes...`)
   } else {
-    watcher.close()
     generators.forEach(async close => (await close)())
   }
 }
