@@ -51,6 +51,7 @@ async function start(cwd: string, options: Options) {
           generators.set(name, generate(name, config))
         })
     }
+    regenerateQueue.clear()
   }, 100)
 
   let initialized = false
